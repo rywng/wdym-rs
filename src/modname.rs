@@ -18,22 +18,21 @@ impl TryInto<SearchResult> for HttpResponse {
     type Error = TranslateError;
 
     fn try_into(self) -> Result<SearchResult, Self::Error> {
-        match self.dict {
-            Some(mut dicts) => Ok(SearchResult {
-                dicts: dicts
-                    .iter_mut()
-                    .filter_map(|dict| dict.take().try_into().ok())
-                    .collect(),
-                src_lang: self.src,
-                sentences: self
-                    .sentences
-                    .unwrap()
-                    .iter_mut()
-                    .filter_map(|sentence| sentence.take().unwrap().src_translit)
-                    .collect(),
-            }),
-            None => Err(TranslateError("no answer possible".to_string())),
-        }
+        Ok(SearchResult {
+            dicts: self
+                .dict
+                .ok_or(TranslateError("No result available".to_string()))?
+                .iter_mut()
+                .filter_map(|dict| dict.take().try_into().ok())
+                .collect(),
+            src_lang: self.src,
+            sentences: self
+                .sentences
+                .unwrap()
+                .iter_mut()
+                .filter_map(|sentence| sentence.take()?.src_translit)
+                .collect(),
+        })
     }
 }
 
@@ -41,15 +40,6 @@ impl TryInto<SearchResult> for HttpResponse {
 #[derive(Deserialize, Debug)]
 struct HttpResponseSentence {
     src_translit: Option<String>,
-}
-
-impl From<String> for HttpResponseSentence {
-    fn from(value: String) -> Self {
-        Self {
-            src_translit: Some(value),
-        }
-    }
-    // add code here
 }
 
 #[allow(dead_code)]
@@ -151,7 +141,7 @@ pub fn lookup_google_translate(search_options: SearchConfig) -> Result<String, T
     )
     .unwrap();
     let response: reqwest::blocking::Response = reqwest::blocking::get(url).unwrap();
-    let body: HttpResponse = dbg!(response).json().unwrap();
+    let body: HttpResponse = response.json().unwrap();
     let search_result: SearchResult = body.try_into()?;
     Ok(format!("{}", search_result))
 }
