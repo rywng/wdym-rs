@@ -6,12 +6,14 @@ use serde::Deserialize;
 #[derive(Deserialize, Debug)]
 struct HttpResponse {
     dict: Option<Vec<Option<HttpResponseDict>>>,
+    sentences: Option<Vec<Option<HttpResponseSentence>>>,
     src: String,
     confidence: Option<f32>,
     spell: Option<serde_json::Value>,
     ld_result: Option<serde_json::Value>,
 }
 
+/// TODO: use TryFrom
 impl TryInto<SearchResult> for HttpResponse {
     type Error = TranslateError;
 
@@ -23,10 +25,31 @@ impl TryInto<SearchResult> for HttpResponse {
                     .filter_map(|dict| dict.take().try_into().ok())
                     .collect(),
                 src_lang: self.src,
+                sentences: self
+                    .sentences
+                    .unwrap()
+                    .iter_mut()
+                    .filter_map(|sentence| sentence.take().unwrap().src_translit)
+                    .collect(),
             }),
             None => Err(TranslateError("no answer possible".to_string())),
         }
     }
+}
+
+/// This is probably the transliteration
+#[derive(Deserialize, Debug)]
+struct HttpResponseSentence {
+    src_translit: Option<String>,
+}
+
+impl From<String> for HttpResponseSentence {
+    fn from(value: String) -> Self {
+        Self {
+            src_translit: Some(value),
+        }
+    }
+    // add code here
 }
 
 #[allow(dead_code)]
@@ -68,12 +91,16 @@ struct SearchResultDict {
 
 struct SearchResult {
     dicts: Vec<SearchResultDict>,
+    sentences: Vec<String>,
     src_lang: String,
 }
 
 impl std::fmt::Display for SearchResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "src lang: {}", self.src_lang)?;
+        for sentence in &self.sentences {
+            writeln!(f, "translit: {}", sentence)?
+        }
         for dict in &self.dicts {
             writeln!(f, "pos: {}", dict.pos)?;
             for entry in &dict.entry {
@@ -103,10 +130,13 @@ pub fn lookup_google_translate(search_options: SearchConfig) -> Result<String, T
         "https://clients5.google.com/translate_a/single",
         &[
             ("dj", "1"),
-            ("dt", "t"),
-            ("dt", "sp"),
-            ("dt", "ld"),
+            ("dt", "at"),
             ("dt", "bd"),
+            ("dt", "rm"), // Transliteration
+            ("dt", "rw"),
+            ("dt", "sp"),
+            ("dt", "ss"),
+            ("dt", "t"),
             ("client", "dict-chrome-ex"),
             (
                 "sl",
@@ -121,7 +151,7 @@ pub fn lookup_google_translate(search_options: SearchConfig) -> Result<String, T
     )
     .unwrap();
     let response: reqwest::blocking::Response = reqwest::blocking::get(url).unwrap();
-    let body: HttpResponse = response.json().unwrap();
+    let body: HttpResponse = dbg!(response).json().unwrap();
     let search_result: SearchResult = body.try_into()?;
     Ok(format!("{}", search_result))
 }
