@@ -37,6 +37,7 @@ impl TryInto<SearchResult> for HttpResponse {
 }
 
 /// This is probably the transliteration
+/// TODO: add sentence translation
 #[derive(Deserialize, Debug)]
 struct HttpResponseSentence {
     src_translit: Option<String>,
