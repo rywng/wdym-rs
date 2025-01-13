@@ -39,5 +39,10 @@ impl TryInto<SearchConfig> for CliArgs {
 fn main() {
     let args = CliArgs::parse();
 
-    println!("{}", lookup_google_translate(args.try_into().unwrap()).unwrap());
+    let res: String = match lookup_google_translate(args.try_into().unwrap()) {
+        Ok(res) => res,
+        Err(e) => e.to_string(),
+    };
+
+    println!("{}", res);
 }
