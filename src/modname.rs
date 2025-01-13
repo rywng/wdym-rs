@@ -2,6 +2,7 @@ use super::SearchConfig;
 use super::TranslateError;
 use serde::Deserialize;
 
+#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 struct GoogleTranslateResponse {
     pub(crate) dict: Option<Vec<GoogleTranslateResponseDict>>,
@@ -11,6 +12,7 @@ struct GoogleTranslateResponse {
     pub(crate) ld_result: Option<serde_json::Value>,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 struct GoogleTranslateResponseDict {
     pub(crate) pos: String,
@@ -20,6 +22,7 @@ struct GoogleTranslateResponseDict {
     pub(crate) pos_enum: i32,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 struct GoogleTranslateResponseEntry {
     pub(crate) word: String,
@@ -29,7 +32,7 @@ struct GoogleTranslateResponseEntry {
 
 /// Looks up the translation on google translate, using the endpoint by:
 /// <https://github.com/ssut/py-googletrans/issues/268#issuecomment-1146554742>
-/// This will only successs for a small number of words
+/// This will only success for a small number of words
 pub fn lookup_google_translate(
     search_options: SearchConfig,
 ) -> Result<std::string::String, TranslateError> {
