@@ -131,12 +131,14 @@ impl std::fmt::Display for SearchResult {
             for dict in dicts {
                 writeln!(f, "pos: {}", dict.pos)?;
                 for entry in &dict.entry {
-                    write!(
-                        f,
-                        "\t{} ({:.3}):\n\t\t",
-                        entry.word,
-                        entry.score.unwrap_or(0.0)
-                    )?;
+                    match entry.score {
+                        Some(score) => {
+                            write!(f, "\t{} ({:.3}):\n\t\t", entry.word, score)?;
+                        }
+                        None => {
+                            write!(f, "\t{}:\n\t\t", entry.word)?;
+                        }
+                    }
                     for reverse_translation in &entry.reverse_translation {
                         write!(f, "{} ", reverse_translation)?
                     }
@@ -147,16 +149,42 @@ impl std::fmt::Display for SearchResult {
 
         if let Some(src_translit) = &self.src_translit {
             writeln!(f, "src_translit:")?;
-            writeln!(f, "\t{}", src_translit)?;
+            pretty_format_section(f, src_translit)?;
         }
 
         if let Some(translit) = &self.translit {
             writeln!(f, "translit:")?;
-            writeln!(f, "\t{}", translit)?;
+            pretty_format_section(f, translit)?;
         }
 
         Ok(())
     }
+}
+
+/// Formats the section
+///
+/// # Arguments
+///
+/// * f - The formatter to use
+///
+/// # Returns
+///
+/// Error if the formatting fail
+fn pretty_format_section(
+    f: &mut std::fmt::Formatter<'_>,
+    translit: &String,
+) -> Result<(), std::fmt::Error> {
+    Ok(
+        for translit_line in
+        translit.split_inclusive(|c: char| c.is_ascii_punctuation() && c != ',')
+    {
+            writeln!(
+                f,
+                "\t{}",
+                translit_line.strip_prefix(" ").unwrap_or(translit_line)
+            )?;
+        },
+    )
 }
 
 /// Looks up the translation on google translate, using the endpoint by:
