@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use wdym::modname::lookup_google_translate;
+use wdym::translators::google_translate::lookup_google_translate;
 use wdym::SearchConfig;
 
 #[derive(Parser, Debug)]
