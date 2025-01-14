@@ -176,7 +176,7 @@ fn pretty_format_section(
 ) -> Result<(), std::fmt::Error> {
     Ok(
         for translit_line in
-            translit.split_inclusive(|c: char| c.is_ascii_punctuation() && c != ',')
+            translit.split_inclusive(|c: char| ".?!".contains(c))
         {
             writeln!(
                 f,
