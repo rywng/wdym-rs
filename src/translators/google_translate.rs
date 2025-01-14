@@ -6,13 +6,13 @@ use serde::Deserialize;
 
 #[allow(dead_code)]
 #[derive(Deserialize, Debug)]
-pub(crate) struct HttpResponse {
-    pub(crate) dict: Option<Vec<Option<HttpResponseDict>>>,
-    pub(crate) sentences: Option<Vec<Option<HttpResponseSentence>>>,
-    pub(crate) src: String,
-    pub(crate) confidence: Option<f32>,
-    pub(crate) spell: Option<serde_json::Value>,
-    pub(crate) ld_result: Option<serde_json::Value>,
+struct HttpResponse {
+    dict: Option<Vec<Option<HttpResponseDict>>>,
+    sentences: Option<Vec<Option<HttpResponseSentence>>>,
+    src: String,
+    confidence: Option<f32>,
+    spell: Option<serde_json::Value>,
+    ld_result: Option<serde_json::Value>,
 }
 
 /// TODO: use TryFrom
@@ -41,18 +41,18 @@ impl TryInto<SearchResult> for HttpResponse {
 /// This is probably the transliteration
 /// TODO: add sentence translation
 #[derive(Deserialize, Debug)]
-pub(crate) struct HttpResponseSentence {
-    pub(crate) src_translit: Option<String>,
+struct HttpResponseSentence {
+    src_translit: Option<String>,
 }
 
 #[allow(dead_code)]
 #[derive(Deserialize, Debug)]
-pub(crate) struct HttpResponseDict {
-    pub(crate) pos: String,
-    pub(crate) terms: Vec<String>,
-    pub(crate) entry: Vec<SearchResultEntry>,
-    pub(crate) base_form: String,
-    pub(crate) pos_enum: i32,
+struct HttpResponseDict {
+    pos: String,
+    terms: Vec<String>,
+    entry: Vec<SearchResultEntry>,
+    base_form: String,
+    pos_enum: i32,
 }
 
 impl TryInto<SearchResultDict> for Option<HttpResponseDict> {
@@ -71,21 +71,21 @@ impl TryInto<SearchResultDict> for Option<HttpResponseDict> {
 
 #[allow(dead_code)]
 #[derive(Deserialize, Debug)]
-pub(crate) struct SearchResultEntry {
-    pub(crate) word: String,
-    pub(crate) reverse_translation: Vec<String>,
-    pub(crate) score: Option<f32>,
+struct SearchResultEntry {
+    word: String,
+    reverse_translation: Vec<String>,
+    score: Option<f32>,
 }
 
-pub(crate) struct SearchResultDict {
-    pub(crate) pos: String,
-    pub(crate) entry: Vec<SearchResultEntry>,
+struct SearchResultDict {
+    pos: String,
+    entry: Vec<SearchResultEntry>,
 }
 
-pub(crate) struct SearchResult {
-    pub(crate) dicts: Vec<SearchResultDict>,
-    pub(crate) sentences: Vec<String>,
-    pub(crate) src_lang: String,
+struct SearchResult {
+    dicts: Vec<SearchResultDict>,
+    sentences: Vec<String>,
+    src_lang: String,
 }
 
 impl std::fmt::Display for SearchResult {
@@ -175,4 +175,3 @@ pub(crate) mod test {
             .contains("お早う"));
     }
 }
-
