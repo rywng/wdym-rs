@@ -15,34 +15,15 @@ struct HttpResponse {
     ld_result: Option<serde_json::Value>,
 }
 
-/// TODO: use TryFrom
-impl TryInto<SearchResult> for HttpResponse {
-    type Error = TranslateError;
-
-    fn try_into(self) -> Result<SearchResult, Self::Error> {
-        Ok(SearchResult {
-            dicts: self
-                .dict
-                .ok_or(TranslateError("No result available".to_string()))?
-                .iter_mut()
-                .filter_map(|dict| dict.take().try_into().ok())
-                .collect(),
-            src_lang: self.src,
-            sentences: self
-                .sentences
-                .unwrap()
-                .iter_mut()
-                .filter_map(|sentence| sentence.take()?.src_translit)
-                .collect(),
-        })
-    }
-}
-
-/// This is probably the transliteration
+/// A sentence may have some of the following.
+/// A trans and orig are always appearing together
 /// TODO: add sentence translation
 #[derive(Deserialize, Debug)]
 struct HttpResponseSentence {
     src_translit: Option<String>,
+    trans: Option<String>,
+    orig: Option<String>,
+    translit: Option<String>,
 }
 
 #[allow(dead_code)]
@@ -53,20 +34,6 @@ struct HttpResponseDict {
     entry: Vec<SearchResultEntry>,
     base_form: String,
     pos_enum: i32,
-}
-
-impl TryInto<SearchResultDict> for Option<HttpResponseDict> {
-    type Error = TranslateError;
-
-    fn try_into(self) -> Result<SearchResultDict, Self::Error> {
-        match self {
-            Some(dict) => Ok(SearchResultDict {
-                pos: dict.pos,
-                entry: dict.entry,
-            }),
-            None => Err(TranslateError("No entry".to_string())),
-        }
-    }
 }
 
 #[allow(dead_code)]
@@ -82,32 +49,110 @@ struct SearchResultDict {
     entry: Vec<SearchResultEntry>,
 }
 
+impl From<HttpResponseDict> for SearchResultDict {
+    fn from(value: HttpResponseDict) -> Self {
+        SearchResultDict {
+            pos: value.pos,
+            entry: value.entry,
+        }
+    }
+}
+
 struct SearchResult {
-    dicts: Vec<SearchResultDict>,
-    sentences: Vec<String>,
+    dicts: Option<Vec<SearchResultDict>>,
+    sentence_translation: Option<Vec<(String, String)>>,
+    src_translit: Option<String>,
+    translit: Option<String>,
     src_lang: String,
+}
+
+impl TryFrom<HttpResponse> for SearchResult {
+    type Error = TranslateError;
+
+    fn try_from(value: HttpResponse) -> Result<Self, Self::Error> {
+        let mut src_translit: Option<String> = None;
+        let mut translit: Option<String> = None;
+
+        let mut translations: Vec<(String, String)> = vec![];
+        if let Some(sentences) = value.sentences {
+            for sentence_opt in sentences {
+                if let Some(mut sentence) = sentence_opt {
+                    translit = sentence.translit.take();
+                    src_translit = sentence.src_translit.take();
+
+                    if sentence.orig.is_some() && sentence.trans.is_some() {
+                        translations.push((
+                            sentence.orig.take().unwrap(),
+                            sentence.trans.take().unwrap(),
+                        ));
+                    }
+                }
+            }
+        }
+
+        let sentence_translation: Option<Vec<(String, String)>> = match translations.len() {
+            0 => None,
+            _ => Some(translations),
+        };
+
+        let res = SearchResult {
+            dicts: match value.dict {
+                Some(mut dicts) => Some(
+                    dicts
+                        .iter_mut()
+                        .filter_map(|dict| (*dict).take()?.try_into().ok())
+                        .collect(),
+                ),
+                None => None,
+            },
+            sentence_translation,
+            src_translit,
+            translit,
+            src_lang: value.src,
+        };
+
+        Ok(res)
+    }
 }
 
 impl std::fmt::Display for SearchResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "src lang: {}", self.src_lang)?;
-        for sentence in &self.sentences {
-            writeln!(f, "translit: {}", sentence)?
-        }
-        for dict in &self.dicts {
-            writeln!(f, "pos: {}", dict.pos)?;
-            for entry in &dict.entry {
-                write!(
-                    f,
-                    "\t{} ({:.3}):\n\t\t",
-                    entry.word,
-                    entry.score.unwrap_or(0.0)
-                )?;
-                for reverse_translation in &entry.reverse_translation {
-                    write!(f, "{} ", reverse_translation)?
-                }
-                writeln!(f, "")?
+
+        if let Some(translations) = &self.sentence_translation {
+            writeln!(f, "translations:")?;
+            for line in translations {
+                writeln!(f, "\t{}", line.0)?;
+                writeln!(f, "\t{}", line.1)?;
             }
+        }
+
+        if let Some(dicts) = &self.dicts {
+            for dict in dicts {
+                writeln!(f, "pos: {}", dict.pos)?;
+                for entry in &dict.entry {
+                    write!(
+                        f,
+                        "\t{} ({:.3}):\n\t\t",
+                        entry.word,
+                        entry.score.unwrap_or(0.0)
+                    )?;
+                    for reverse_translation in &entry.reverse_translation {
+                        write!(f, "{} ", reverse_translation)?
+                    }
+                    writeln!(f, "")?
+                }
+            }
+        }
+
+        if let Some(src_translit) = &self.src_translit {
+            writeln!(f, "src_translit:")?;
+            writeln!(f, "\t{}", src_translit)?;
+        }
+
+        if let Some(translit) = &self.translit {
+            writeln!(f, "translit:")?;
+            writeln!(f, "\t{}", translit)?;
         }
 
         Ok(())
