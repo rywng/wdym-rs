@@ -165,7 +165,7 @@ impl std::fmt::Display for SearchResult {
 ///
 /// # Arguments
 ///
-/// * f - The formatter to use
+/// * f - The `Formatter` to use
 ///
 /// # Returns
 ///
