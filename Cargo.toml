@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.26", features = ["derive", "unstable-doc"] }
-isolang = "2.4.0"
+isolang = { version = "2.4.0", features = ["english_names", "local_names", "lowercase_names"] }
 ratatui = "0.29.0"
 reqwest = { version = "0.12.12", features = ["blocking", "json", "socks"] }
 serde = { version = "1.0.217", features = ["derive"] }

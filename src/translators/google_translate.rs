@@ -259,7 +259,18 @@ pub fn lookup_google_translate(
                     None => "auto",
                 },
             ),
-            ("tl", search_options.target_language.to_639_1().unwrap()),
+            (
+                "tl",
+                search_options
+                    .target_language
+                    .ok_or_else(|| {
+                        TranslateError(
+                            "google translate requires a destination language".to_string(),
+                        )
+                    })?
+                    .to_639_1()
+                    .expect("Should have a corresponding language"),
+            ),
             ("q", &search_options.query),
         ],
     )
@@ -286,9 +297,10 @@ pub(crate) mod test {
     #[test]
     fn simple_lookup() {
         let search_options = SearchConfig {
+            provider: crate::translators::SearchProvider::GoogleTranslate,
             query: "Good Morning".to_string(),
             source_language: Some(isolang::Language::Eng),
-            target_language: isolang::Language::from_name("Japanese").unwrap(),
+            target_language: Some(isolang::Language::from_name("Japanese").unwrap()),
         };
 
         assert!(lookup_google_translate(search_options)
@@ -308,7 +320,8 @@ pub(crate) mod test {
         let search_options = SearchConfig {
             query: "Typer is a library for building CLI applications that users will love using and developers will love creating. Based on Python type hints. It's also a command line tool to run scripts, automatically converting them to CLI applications. The key features are: Intuitive to write: Great editor support. Completion everywhere. Less time debugging. Designed to be easy to use and learn. Less time reading docs. Easy to use: It's easy to use for the final users. Automatic help, and automatic completion for all shells. Short: Minimize code duplication. Multiple features from each parameter declaration. Fewer bugs. Start simple: The simplest example adds only 2 lines of code to your app: 1 import, 1 function call. Grow large: Grow in complexity as much as you want, create arbitrarily complex trees of commands and groups of subcommands, with options and arguments. Run scripts: Typer includes a typer command/program that you can use to run scripts, automatically converting them to CLIs, even if they don't use Typer internally. ".to_string(),
             source_language: Some(isolang::Language::Eng),
-            target_language: isolang::Language::Jpn
+            target_language: Some(isolang::Language::Jpn),
+            provider: crate::translators::SearchProvider::GoogleTranslate,
         };
 
         let res = lookup_google_translate(search_options).unwrap().to_string();
@@ -325,7 +338,8 @@ pub(crate) mod test {
         let search_options = SearchConfig {
             query: "計算".to_string(),
             source_language: Some(isolang::Language::Jpn),
-            target_language: isolang::Language::Eng,
+            target_language: Some(isolang::Language::Eng),
+            provider: crate::translators::SearchProvider::GoogleTranslate,
         };
 
         assert!(lookup_google_translate(search_options)

@@ -1,4 +1,6 @@
 //! Implementations of different translators and dictionaries
+use clap::ValueEnum;
+
 #[derive(Debug, Clone)]
 pub struct TranslateError(String);
 
@@ -9,9 +11,25 @@ impl std::fmt::Display for TranslateError {
     // add code here
 }
 
-#[derive(Debug)]
+#[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
 pub enum SearchProvider {
     GoogleTranslate,
+    Jisho,
+}
+
+impl std::fmt::Display for SearchProvider {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.to_possible_value()
+            .expect("No variables should be skipped")
+            .get_name()
+            .fmt(f)
+    }
+}
+
+impl Default for SearchProvider {
+    fn default() -> Self {
+        SearchProvider::GoogleTranslate
+    }
 }
 
 pub mod google_translate;

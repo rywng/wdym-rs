@@ -1,11 +1,13 @@
 pub mod translators;
+use isolang::Language;
 use translators::SearchProvider;
 use translators::TranslateError;
 
 pub struct SearchConfig {
     pub query: String,
-    pub source_language: Option<isolang::Language>,
-    pub target_language: isolang::Language,
+    pub source_language: Option<Language>,
+    pub target_language: Option<Language>,
+    pub provider: SearchProvider,
 }
 
 #[derive(Debug)]
@@ -37,10 +39,30 @@ pub struct SearchResult {
     literation: Literation,
 }
 
-pub fn lookup(provider: SearchProvider, query: SearchConfig) -> Result<SearchResult, TranslateError> {
-    let res: SearchResult = match provider {
-        SearchProvider::GoogleTranslate => translators::google_translate::lookup_google_translate(query)?.into(),
+pub fn lookup(query: SearchConfig) -> Result<SearchResult, TranslateError> {
+    let res: SearchResult = match query.provider {
+        SearchProvider::GoogleTranslate => {
+            translators::google_translate::lookup_google_translate(query)?.into()
+        }
+        _ => todo!("This provider is not implemented"),
     };
 
     Ok(res)
+}
+
+pub fn parse_lang(lang: String) -> Result<Language, LanguageParseError> {
+    let res: Language = Language::from_639_1(&lang)
+        .ok_or(LanguageParseError("invalid language code".to_string()))?;
+
+    Ok(res)
+}
+
+#[derive(Debug, Clone)]
+pub struct LanguageParseError(String);
+
+impl std::fmt::Display for LanguageParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "failed to parse the language code: {}", self.0)
+    }
+    // add code here
 }
