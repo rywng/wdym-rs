@@ -58,12 +58,60 @@ impl From<HttpResponseDict> for SearchResultDict {
     }
 }
 
-struct SearchResult {
+pub struct SearchResult {
     dicts: Option<Vec<SearchResultDict>>,
     sentence_translation: Option<Vec<(String, String)>>,
     src_translit: Option<String>,
     translit: Option<String>,
     src_lang: String,
+}
+
+impl From<&(String, String)> for crate::Translation {
+    fn from(value: &(String, String)) -> Self {
+        Self {
+            // TODO: performance: use `&str`
+            orig: Some(value.0.clone()),
+            translated: Some(value.1.clone()),
+        }
+    }
+}
+
+impl From<SearchResult> for crate::SearchResult {
+    fn from(value: SearchResult) -> Self {
+        let definitions: Option<Vec<crate::Definition>> = match value.dicts {
+            Some(dicts) => {
+                let mut res: Vec<crate::Definition> = Vec::new();
+                for dict_pos in dicts {
+                    let pos: String = dict_pos.pos;
+                    for entry in dict_pos.entry {
+                        res.push(crate::Definition {
+                            meaning: entry.word,
+                            pos: pos.clone(),
+                            reverse_translation: Some(entry.reverse_translation),
+                            confidence: entry.score,
+                        });
+                    }
+                }
+                Some(res)
+            }
+            None => None,
+        };
+        crate::SearchResult {
+            provider: super::SearchProvider::GoogleTranslate,
+            translation: value.sentence_translation.map(|sentences| {
+                sentences
+                    .iter()
+                    .map(|sentence_pair| sentence_pair.into())
+                    .collect()
+            }),
+            src_lang: Some(value.src_lang),
+            literation: crate::Literation {
+                orig: value.src_translit,
+                translated: value.translit,
+            },
+            dictionary: definitions,
+        }
+    }
 }
 
 impl TryFrom<HttpResponse> for SearchResult {
@@ -175,9 +223,7 @@ fn pretty_format_section(
     translit: &String,
 ) -> Result<(), std::fmt::Error> {
     Ok(
-        for translit_line in
-            translit.split_inclusive(|c: char| ".?!".contains(c))
-        {
+        for translit_line in translit.split_inclusive(|c: char| ".?!".contains(c)) {
             writeln!(
                 f,
                 "\t{}",
@@ -191,7 +237,9 @@ fn pretty_format_section(
 /// <https://github.com/ssut/py-googletrans/issues/268#issuecomment-1146554742>
 /// This will only success for a small number of words
 /// TODO: add support for multiple definitions
-pub fn lookup_google_translate(search_options: SearchConfig) -> Result<String, TranslateError> {
+pub fn lookup_google_translate(
+    search_options: SearchConfig,
+) -> Result<SearchResult, TranslateError> {
     let url = reqwest::Url::parse_with_params(
         "https://clients5.google.com/translate_a/single",
         &[
@@ -219,7 +267,7 @@ pub fn lookup_google_translate(search_options: SearchConfig) -> Result<String, T
     let response: reqwest::blocking::Response = reqwest::blocking::get(url).unwrap();
     let body: HttpResponse = response.json().unwrap();
     let search_result: SearchResult = body.try_into()?;
-    Ok(format!("{}", search_result))
+    Ok(search_result)
 }
 
 #[cfg(test)]
@@ -245,6 +293,7 @@ pub(crate) mod test {
 
         assert!(lookup_google_translate(search_options)
             .unwrap()
+            .to_string()
             .contains("お早う"));
     }
 
@@ -262,7 +311,7 @@ pub(crate) mod test {
             target_language: isolang::Language::Jpn
         };
 
-        let res = lookup_google_translate(search_options).unwrap();
+        let res = lookup_google_translate(search_options).unwrap().to_string();
 
         // sentence translation
         assert!(res.contains("Typerは、ユーザーが使用するのが大好きなCLIアプリケーションを構築するライブラリであり、開発者が作成するのが大好きです。 "));
@@ -281,6 +330,7 @@ pub(crate) mod test {
 
         assert!(lookup_google_translate(search_options)
             .unwrap()
+            .to_string()
             .contains("Keisan"));
     }
 }

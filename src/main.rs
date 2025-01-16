@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use wdym::translators::google_translate::lookup_google_translate;
+use wdym::translators::SearchProvider::GoogleTranslate;
 use wdym::SearchConfig;
 
 #[derive(Parser, Debug)]
@@ -39,10 +39,7 @@ impl TryInto<SearchConfig> for CliArgs {
 fn main() {
     let args = CliArgs::parse();
 
-    let res: String = match lookup_google_translate(args.try_into().unwrap()) {
-        Ok(res) => res,
-        Err(e) => e.to_string(),
-    };
+    let res = wdym::lookup(GoogleTranslate, args.try_into().unwrap()).unwrap();
 
-    println!("{}", res);
+    dbg!(res);
 }
