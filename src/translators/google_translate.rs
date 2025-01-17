@@ -1,5 +1,5 @@
-use crate::search::SearchConfig;
 use crate::search;
+use crate::search::SearchConfig;
 
 use super::TranslateError;
 
@@ -239,7 +239,7 @@ fn pretty_format_section(
 /// This will only success for a small number of words
 /// TODO: add support for multiple definitions
 pub fn lookup_google_translate(
-    search_options: search::SearchConfig,
+    search_options: &search::SearchConfig,
 ) -> Result<SearchResult, TranslateError> {
     let url = reqwest::Url::parse_with_params(
         "https://clients5.google.com/translate_a/single",
@@ -304,7 +304,7 @@ pub(crate) mod test {
             target_language: Some(isolang::Language::from_name("Japanese").unwrap()),
         };
 
-        assert!(lookup_google_translate(search_options)
+        assert!(lookup_google_translate(&search_options)
             .unwrap()
             .to_string()
             .contains("お早う"));
@@ -325,7 +325,7 @@ pub(crate) mod test {
             provider: crate::translators::SearchProvider::GoogleTranslate,
         };
 
-        let res = lookup_google_translate(search_options).unwrap().to_string();
+        let res = lookup_google_translate(&search_options).unwrap().to_string();
 
         // sentence translation
         assert!(res.contains("Typerは、ユーザーが使用するのが大好きなCLIアプリケーションを構築するライブラリであり、開発者が作成するのが大好きです。 "));
@@ -343,7 +343,7 @@ pub(crate) mod test {
             provider: crate::translators::SearchProvider::GoogleTranslate,
         };
 
-        assert!(lookup_google_translate(search_options)
+        assert!(lookup_google_translate(&search_options)
             .unwrap()
             .to_string()
             .contains("Keisan"));

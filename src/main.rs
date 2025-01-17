@@ -46,7 +46,7 @@ impl TryInto<SearchConfig> for CliArgs {
 fn main() {
     let args = CliArgs::parse();
 
-    let res = search::lookup(args.try_into().unwrap()).unwrap();
+    let res = search::lookup(&args.try_into().unwrap()).unwrap();
 
     dbg!(res);
 }

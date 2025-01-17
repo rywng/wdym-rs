@@ -1,9 +1,8 @@
 use isolang::Language;
 
-use crate::translators::SearchProvider;
 use crate::translators;
+use crate::translators::SearchProvider;
 use crate::translators::TranslateError;
-
 
 pub struct SearchConfig {
     pub query: String,
@@ -41,7 +40,7 @@ pub struct SearchResult {
     pub(crate) literation: Literation,
 }
 
-pub fn lookup(query: SearchConfig) -> Result<SearchResult, TranslateError> {
+pub fn lookup(query: &SearchConfig) -> Result<SearchResult, TranslateError> {
     let res: SearchResult = match query.provider {
         SearchProvider::GoogleTranslate => {
             translators::google_translate::lookup_google_translate(query)?.into()
@@ -68,4 +67,3 @@ impl std::fmt::Display for LanguageParseError {
     }
     // add code here
 }
-
