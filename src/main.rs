@@ -1,9 +1,10 @@
 use clap::Parser;
 
 use isolang::Language;
-use wdym::parse_lang;
-use wdym::SearchConfig;
-use wdym::{translators::SearchProvider, LanguageParseError};
+use wdym::search;
+use wdym::search::parse_lang;
+use wdym::search::SearchConfig;
+use wdym::{translators::SearchProvider, search::LanguageParseError};
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -45,7 +46,7 @@ impl TryInto<SearchConfig> for CliArgs {
 fn main() {
     let args = CliArgs::parse();
 
-    let res = wdym::lookup(args.try_into().unwrap()).unwrap();
+    let res = search::lookup(args.try_into().unwrap()).unwrap();
 
     dbg!(res);
 }
@@ -76,6 +77,6 @@ mod test {
             provider: SearchProvider::GoogleTranslate,
         };
 
-        let _search_conf: SearchConfig = args.try_into().unwrap();
+        let _search_conf: search::SearchConfig = args.try_into().unwrap();
     }
 }
