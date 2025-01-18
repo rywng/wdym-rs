@@ -47,7 +47,7 @@ fn main() {
 
     let search_config: SearchConfig = args.try_into().unwrap();
 
-    let mut terminal = ratatui::init_with_options(ratatui::TerminalOptions { viewport: ratatui::Viewport::Inline(4) });
+    let mut terminal = ratatui::init();
     let mut app = App::new(search_config);
 
     app.run(&mut terminal);
