@@ -1,5 +1,4 @@
 use crate::search;
-use crate::search::SearchConfig;
 
 use super::TranslateError;
 
@@ -325,7 +324,9 @@ pub(crate) mod test {
             provider: crate::translators::SearchProvider::GoogleTranslate,
         };
 
-        let res = lookup_google_translate(&search_options).unwrap().to_string();
+        let res = lookup_google_translate(&search_options)
+            .unwrap()
+            .to_string();
 
         // sentence translation
         assert!(res.contains("Typerは、ユーザーが使用するのが大好きなCLIアプリケーションを構築するライブラリであり、開発者が作成するのが大好きです。 "));
