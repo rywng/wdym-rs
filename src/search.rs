@@ -4,6 +4,7 @@ use crate::translators;
 use crate::translators::SearchProvider;
 use crate::translators::TranslateError;
 
+#[derive(Debug, Default)]
 pub struct SearchConfig {
     pub query: String,
     pub source_language: Option<Language>,

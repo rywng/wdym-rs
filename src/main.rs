@@ -1,7 +1,6 @@
 use clap::Parser;
 
-use isolang::Language;
-use wdym::search;
+use wdym::app::App;
 use wdym::search::parse_lang;
 use wdym::search::SearchConfig;
 use wdym::{translators::SearchProvider, search::LanguageParseError};
@@ -46,9 +45,14 @@ impl TryInto<SearchConfig> for CliArgs {
 fn main() {
     let args = CliArgs::parse();
 
-    let res = search::lookup(&args.try_into().unwrap()).unwrap();
+    let search_config: SearchConfig = args.try_into().unwrap();
 
-    dbg!(res);
+    let mut terminal = ratatui::init_with_options(ratatui::TerminalOptions { viewport: ratatui::Viewport::Inline(4) });
+    let mut app = App::new(search_config);
+
+    app.run(&mut terminal);
+
+    ratatui::restore();
 }
 
 #[cfg(test)]
@@ -77,6 +81,6 @@ mod test {
             provider: SearchProvider::GoogleTranslate,
         };
 
-        let _search_conf: search::SearchConfig = args.try_into().unwrap();
+        let _search_conf: SearchConfig = args.try_into().unwrap();
     }
 }
