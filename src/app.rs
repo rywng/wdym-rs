@@ -194,7 +194,17 @@ fn render_result(
                 line.push(": ".into());
                 line.append(&mut translations);
             }
+
+            if let Some(confidence) = &definition.confidence {
+                line.push(format!("({})", confidence).dim().italic());
+            }
             res.push(Line::from(line));
+
+            if let Some(examples) = &definition.examples {
+                for example in examples {
+                    res.push(Line::from(example.clone().italic().dim()));
+                }
+            }
         }
     }
 

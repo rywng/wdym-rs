@@ -89,6 +89,7 @@ impl From<SearchResult> for crate::search::SearchResult {
                             pos: pos.clone(),
                             reverse_translation: Some(entry.reverse_translation),
                             confidence: entry.score,
+                            examples: None,
                         });
                     }
                 }

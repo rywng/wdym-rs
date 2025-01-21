@@ -24,6 +24,7 @@ pub struct Definition {
     pub(crate) pos: String, // Part of speech, noun verb etc.
     pub(crate) reverse_translation: Option<Vec<String>>,
     pub(crate) confidence: Option<f32>,
+    pub(crate) examples: Option<Vec<String>>
 }
 
 #[derive(Debug)]
