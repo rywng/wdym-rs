@@ -3,7 +3,7 @@ use clap::Parser;
 use wdym::app::App;
 use wdym::search::parse_lang;
 use wdym::search::SearchConfig;
-use wdym::{translators::SearchProvider, search::LanguageParseError};
+use wdym::{search::LanguageParseError, translators::SearchProvider};
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
