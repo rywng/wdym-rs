@@ -10,12 +10,15 @@ use wdym::{search::LanguageParseError, translators::SearchProvider};
 struct CliArgs {
     input: String,
 
+    /// Optional name of source language
     #[arg(short, long)]
     source_lang: Option<String>,
 
+    /// Name of target language. Only required for some search providers.
     #[arg(short, long)]
     dest_lang: Option<String>,
 
+    /// What search provider to use.
     #[arg(short, long, default_value_t = SearchProvider::GoogleTranslate)]
     provider: SearchProvider,
 }
