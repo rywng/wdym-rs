@@ -154,11 +154,14 @@ fn render_result(
     buf: &mut ratatui::prelude::Buffer,
 ) {
     let provider = result.provider.to_string().bold();
-    let block: Block = Block::bordered().title(provider);
+    let block: Block = Block::bordered()
+        .title(provider)
+        .padding(widgets::Padding::horizontal(1));
     let mut res: Vec<Line> = Vec::new();
 
-    if let Some(translations) = &result.translation {
+    if let Some(translations) = &result.translations {
         let mut lines: Vec<Line> = Vec::new();
+        lines.push("".into());
         lines.push("Translations:".underlined().into());
         lines.push("".into());
         for translation in translations {
@@ -174,6 +177,10 @@ fn render_result(
             ));
         }
         res.append(&mut lines);
+    }
+
+    if let Some(definitions) = &result.definitions {
+        todo!();
     }
 
     Paragraph::new(res).block(block).render(area, buf);

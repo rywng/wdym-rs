@@ -98,7 +98,7 @@ impl From<SearchResult> for crate::search::SearchResult {
         };
         crate::search::SearchResult {
             provider: super::SearchProvider::GoogleTranslate,
-            translation: value.sentence_translation.map(|sentences| {
+            translations: value.sentence_translation.map(|sentences| {
                 sentences
                     .iter()
                     .map(|sentence_pair| sentence_pair.into())
@@ -109,7 +109,7 @@ impl From<SearchResult> for crate::search::SearchResult {
                 orig: value.src_translit,
                 translated: value.translit,
             },
-            dictionary: definitions,
+            definitions,
         }
     }
 }

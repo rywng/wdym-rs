@@ -35,8 +35,8 @@ pub struct Literation {
 #[derive(Debug)]
 pub struct SearchResult {
     pub(crate) provider: SearchProvider,
-    pub(crate) translation: Option<Vec<Translation>>,
-    pub(crate) dictionary: Option<Vec<Definition>>,
+    pub(crate) translations: Option<Vec<Translation>>,
+    pub(crate) definitions: Option<Vec<Definition>>,
     pub(crate) src_lang: Option<String>,
     pub(crate) literation: Literation,
 }
