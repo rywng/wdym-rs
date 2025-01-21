@@ -1,12 +1,22 @@
 [package]
 name = "wdym"
+description = "What Do You Mean: Look up definitions and translations online. Has a library and TUI interface"
 version = "0.1.0"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/rywng/wdym-rs"
+keywords = ["translate", "dictionary", "language", "learning", "japanese"]
+categories = ["api-bindings", "command-line-utilities", "web-programming"]
 
 [dependencies]
 clap = { version = "4.5.26", features = ["derive", "unstable-doc"] }
 color-eyre = "0.6.3"
-isolang = { version = "2.4.0", features = ["english_names", "local_names", "lowercase_names"] }
+isolang = { version = "2.4.0", features = [
+	"english_names",
+	"local_names",
+	"lowercase_names",
+] }
 ratatui = "0.29.0"
 reqwest = { version = "0.12.12", features = ["blocking", "json", "socks"] }
 serde = { version = "1.0.217", features = ["derive"] }
