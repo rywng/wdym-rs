@@ -160,15 +160,21 @@ fn render_result(
     let language = Line::from(vec![
         config
             .source_language
-            .unwrap_or(isolang::Language::Und)
-            .to_string().italic(),
+            .unwrap_or_else(|| {
+                isolang::Language::from_639_1(&result.src_lang.as_ref().unwrap_or(&"".to_string()))
+                    .unwrap_or(isolang::Language::Und)
+            })
+            .to_string()
+            .italic(),
         " -> ".into(),
         config
             .target_language
             .unwrap_or(isolang::Language::Und)
-            .to_string().italic(),
+            .to_string()
+            .italic(),
     ])
-    .cyan().right_aligned();
+    .cyan()
+    .right_aligned();
     let block: Block = Block::bordered()
         .title(provider)
         .title(language)
