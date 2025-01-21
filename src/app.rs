@@ -184,8 +184,9 @@ fn render_result(
         for definition in definitions {
             let mut line: Vec<Span> = vec![
                 definition.meaning.clone().underlined().cyan(),
-                format!(" ({})", definition.pos).italic().dim(),
+                format!(" ({})", definition.pos).green(),
             ];
+
             if let Some(reverse_translation) = &definition.reverse_translation {
                 let mut translations: Vec<Span> = reverse_translation
                     .iter()
@@ -196,10 +197,11 @@ fn render_result(
             }
 
             if let Some(confidence) = &definition.confidence {
-                line.push(format!("({})", confidence).dim().italic());
+                line.push(format!("({:.3})", confidence).dim().italic());
             }
             res.push(Line::from(line));
 
+            // Start new line for examples
             if let Some(examples) = &definition.examples {
                 for example in examples {
                     res.push(Line::from(example.clone().italic().dim()));
