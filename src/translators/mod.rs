@@ -11,8 +11,9 @@ impl std::fmt::Display for TranslateError {
     // add code here
 }
 
-#[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq, Default)]
 pub enum SearchProvider {
+    #[default]
     GoogleTranslate,
     Jisho,
 }
@@ -23,12 +24,6 @@ impl std::fmt::Display for SearchProvider {
             .expect("No variables should be skipped")
             .get_name()
             .fmt(f)
-    }
-}
-
-impl Default for SearchProvider {
-    fn default() -> Self {
-        SearchProvider::GoogleTranslate
     }
 }
 

@@ -66,7 +66,7 @@ impl Widget for &App {
             }
             RunningState::Result => {
                 render_result(
-                    &self.results.as_ref().expect("Should have a result"),
+                    self.results.as_ref().expect("Should have a result"),
                     &self.search_config,
                     inner_area,
                     buf,
@@ -78,7 +78,7 @@ impl Widget for &App {
 }
 
 impl App {
-    pub fn new<'a>(search_config: search::SearchConfig) -> App {
+    pub fn new(search_config: search::SearchConfig) -> App {
         App {
             results: None,
             running_state: Default::default(),
@@ -159,7 +159,7 @@ fn render_result(
         config
             .source_language
             .unwrap_or_else(|| {
-                isolang::Language::from_639_1(&result.src_lang.as_ref().unwrap_or(&"".to_string()))
+                isolang::Language::from_639_1(result.src_lang.as_ref().unwrap_or(&"".to_string()))
                     .unwrap_or(isolang::Language::Und)
             })
             .to_string()
@@ -217,7 +217,7 @@ fn render_result(
     if let Some(literation) = &result.literation {
         make_title(&mut res, "Literations");
         if let Some(original) = &literation.orig {
-            res.push(vec!["Original: ".bold().dim(), original.clone().italic().into()].into());
+            res.push(vec!["Original: ".bold().dim(), original.clone().italic()].into());
         }
         if let Some(translated) = &literation.translated {
             res.push(vec!["Translated: ".bold().dim(), translated.clone().into()].into());

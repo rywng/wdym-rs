@@ -123,17 +123,15 @@ impl TryFrom<HttpResponse> for SearchResult {
 
         let mut translations: Vec<(String, String)> = vec![];
         if let Some(sentences) = value.sentences {
-            for sentence_opt in sentences {
-                if let Some(mut sentence) = sentence_opt {
-                    translit = sentence.translit.take();
-                    src_translit = sentence.src_translit.take();
+            for mut sentence in sentences.into_iter().flatten() {
+                translit = sentence.translit.take();
+                src_translit = sentence.src_translit.take();
 
-                    if sentence.orig.is_some() && sentence.trans.is_some() {
-                        translations.push((
-                            sentence.orig.take().unwrap(),
-                            sentence.trans.take().unwrap(),
-                        ));
-                    }
+                if sentence.orig.is_some() && sentence.trans.is_some() {
+                    translations.push((
+                        sentence.orig.take().unwrap(),
+                        sentence.trans.take().unwrap(),
+                    ));
                 }
             }
         }
@@ -144,15 +142,12 @@ impl TryFrom<HttpResponse> for SearchResult {
         };
 
         let res = SearchResult {
-            dicts: match value.dict {
-                Some(mut dicts) => Some(
-                    dicts
-                        .iter_mut()
-                        .filter_map(|dict| (*dict).take()?.try_into().ok())
-                        .collect(),
-                ),
-                None => None,
-            },
+            dicts: value.dict.map(|mut dicts| {
+                dicts
+                    .iter_mut()
+                    .filter_map(|dict| Some(SearchResultDict::from((*dict).take()?)))
+                    .collect()
+            }),
             sentence_translation,
             src_translit,
             translit,
@@ -190,7 +185,7 @@ impl std::fmt::Display for SearchResult {
                     for reverse_translation in &entry.reverse_translation {
                         write!(f, "{} ", reverse_translation)?
                     }
-                    writeln!(f, "")?
+                    writeln!(f)?
                 }
             }
         }
@@ -220,17 +215,16 @@ impl std::fmt::Display for SearchResult {
 /// Error if the formatting fail
 fn pretty_format_section(
     f: &mut std::fmt::Formatter<'_>,
-    translit: &String,
+    translit: &str,
 ) -> Result<(), std::fmt::Error> {
-    Ok(
-        for translit_line in translit.split_inclusive(|c: char| ".?!".contains(c)) {
-            writeln!(
-                f,
-                "\t{}",
-                translit_line.strip_prefix(" ").unwrap_or(translit_line)
-            )?;
-        },
-    )
+    for translit_line in translit.split_inclusive(|c: char| ".?!".contains(c)) {
+        writeln!(
+            f,
+            "\t{}",
+            translit_line.strip_prefix(" ").unwrap_or(translit_line)
+        )?;
+    }
+    Ok(())
 }
 
 /// Looks up the translation on google translate, using the endpoint by:
