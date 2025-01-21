@@ -286,7 +286,9 @@ pub fn lookup_google_translate(search_options: &search::SearchConfig) -> Result<
                         )
                     })?
                     .to_639_1()
-                    .expect("Should have a corresponding language"),
+                    .ok_or(TranslateError(
+                        "The language specified doesn't have a iso639-1 language code".to_string(),
+                    ))?,
             ),
             ("q", &search_options.query),
         ],
@@ -300,6 +302,31 @@ pub fn lookup_google_translate(search_options: &search::SearchConfig) -> Result<
 #[cfg(test)]
 pub(crate) mod test {
     use super::*;
+
+    #[test]
+    #[should_panic]
+    fn test_url_construction() {
+        let search_options = search::SearchConfig {
+            query: "book".to_string(),
+            source_language: None,
+            target_language: None,
+            provider: crate::translators::SearchProvider::GoogleTranslate,
+        };
+
+        lookup_google_translate(&search_options).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_special_country_code() {
+        let search_options = search::SearchConfig {
+            query: "book".to_string(),
+            source_language: None,
+            target_language: Some(isolang::Language::Und),
+            provider: crate::translators::SearchProvider::GoogleTranslate,
+        };
+        lookup_google_translate(&search_options).unwrap();
+    }
 
     #[test]
     fn deserialize_json() {
