@@ -66,6 +66,10 @@ impl Widget for &App {
             RunningState::Result => {
                 render_result(
                     &self.results.as_ref().expect("Should have a result"),
+                    &self
+                        .search_config
+                        .as_ref()
+                        .expect("Should have a search config"),
                     inner_area,
                     buf,
                 );
@@ -148,12 +152,26 @@ impl App {
 
 fn render_result(
     result: &SearchResult,
+    config: &SearchConfig,
     area: ratatui::prelude::Rect,
     buf: &mut ratatui::prelude::Buffer,
 ) {
-    let provider = result.provider.to_string().bold();
+    let provider = result.provider.to_string().bold().cyan();
+    let language = Line::from(vec![
+        config
+            .source_language
+            .unwrap_or(isolang::Language::Und)
+            .to_string().italic(),
+        " -> ".into(),
+        config
+            .target_language
+            .unwrap_or(isolang::Language::Und)
+            .to_string().italic(),
+    ])
+    .cyan().right_aligned();
     let block: Block = Block::bordered()
         .title(provider)
+        .title(language)
         .padding(widgets::Padding::horizontal(1));
     let mut res: Vec<Line> = Vec::new();
 
@@ -161,8 +179,8 @@ fn render_result(
         make_title(&mut res, "Definitions");
         for definition in definitions {
             let mut line: Vec<Span> = vec![
-                definition.meaning.clone().bold(),
-                format!(" ({})", definition.pos).italic(),
+                definition.meaning.clone().underlined().cyan(),
+                format!(" ({})", definition.pos).italic().dim(),
             ];
             if let Some(reverse_translation) = &definition.reverse_translation {
                 let mut translations: Vec<Span> = reverse_translation
@@ -183,18 +201,22 @@ fn render_result(
                 translation.orig.clone().unwrap_or("".to_string()).italic(),
             ));
             res.push(Line::from(
-                translation.translated.clone().unwrap_or("".to_string()),
+                translation
+                    .translated
+                    .clone()
+                    .unwrap_or("".to_string())
+                    .bold(),
             ));
         }
     }
 
     if let Some(literation) = &result.literation {
-        make_title(&mut res, "Literation");
+        make_title(&mut res, "Literations");
         if let Some(original) = &literation.orig {
-            res.push(vec!["Original: ".bold(), original.clone().italic().into()].into());
+            res.push(vec!["Original: ".bold().dim(), original.clone().italic().into()].into());
         }
         if let Some(translated) = &literation.translated {
-            res.push(vec!["Translated: ".bold(), translated.clone().into()].into());
+            res.push(vec!["Translated: ".bold().dim(), translated.clone().into()].into());
         }
     }
 
@@ -206,7 +228,7 @@ fn render_result(
 
 fn make_title<'a>(res: &mut Vec<Line<'a>>, title: &'a str) {
     res.push("".into());
-    res.push(title.underlined().into());
+    res.push(title.bold().blue().into());
 }
 
 fn search(search_config: &SearchConfig) -> Option<SearchResult> {
