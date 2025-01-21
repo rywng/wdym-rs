@@ -1,3 +1,4 @@
+use color_eyre::Result;
 use std::rc::Rc;
 
 use ratatui::backend::Backend;
@@ -86,32 +87,33 @@ impl App {
         }
     }
 
-    pub fn run(&mut self, terminal: &mut ratatui::Terminal<impl Backend>) {
+    pub fn run(&mut self, terminal: &mut ratatui::Terminal<impl Backend>) -> Result<()> {
         // Search the user-given query first
         let mut cur_message: Option<Message> =
             Some(Message::QueryReceived(Rc::clone(&self.search_config)));
 
         while self.running_state != RunningState::Finished {
-            terminal.draw(|f| self.view(f)).unwrap();
+            terminal.draw(|f| self.view(f))?;
 
             if cur_message.is_none() {
-                cur_message = self.handle_event();
+                cur_message = self.handle_event()?;
             }
 
             if let Some(msg) = cur_message.take() {
-                cur_message = self.update(msg);
+                cur_message = self.update(msg)?;
             }
         }
+        Ok(())
     }
 
-    fn handle_event(&self) -> Option<Message> {
-        let event = event::read().expect("Failed to read event");
+    fn handle_event(&self) -> Result<Option<Message>> {
+        let event = event::read()?;
         match event {
             event::Event::FocusGained => todo!(),
             event::Event::FocusLost => todo!(),
             event::Event::Key(key_event) => {
                 if key_event.kind == event::KeyEventKind::Press {
-                    return handle_key(key_event);
+                    return Ok(handle_key(key_event));
                 }
             }
             event::Event::Mouse(_mouse_event) => todo!(),
@@ -119,26 +121,26 @@ impl App {
             event::Event::Resize(_, _) => todo!(),
         }
 
-        None
+        Ok(None)
     }
 
-    fn update(&mut self, msg: Message) -> Option<Message> {
+    fn update(&mut self, msg: Message) -> Result<Option<Message>> {
         match msg {
             Message::ResultReceived(search_result) => {
                 self.results = Some(search_result);
                 self.running_state = RunningState::Result;
-                None
+                Ok(None)
             }
             Message::Quit => {
                 self.running_state = RunningState::Finished;
-                None
+                Ok(None)
             }
             Message::QueryReceived(search_config) => {
                 self.running_state = RunningState::Searching;
-                Some(Message::Searching(search_config))
+                Ok(Some(Message::Searching(search_config)))
             }
             Message::Searching(search_config) => {
-                Some(Message::ResultReceived(search(&search_config).unwrap()))
+                Ok(Some(Message::ResultReceived(search(&search_config)?)))
             }
         }
     }
@@ -247,8 +249,8 @@ fn make_title<'a>(res: &mut Vec<Line<'a>>, title: &'a str) {
     res.push(title.bold().blue().into());
 }
 
-fn search(search_config: &SearchConfig) -> Option<SearchResult> {
-    search::lookup(search_config).ok()
+fn search(search_config: &SearchConfig) -> Result<SearchResult> {
+    Ok(search::lookup(search_config)?)
 }
 
 fn handle_key(key: event::KeyEvent) -> Option<Message> {

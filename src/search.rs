@@ -1,8 +1,10 @@
+use std::error::Error;
+
 use isolang::Language;
 
 use crate::translators;
 use crate::translators::SearchProvider;
-use crate::translators::TranslateError;
+use color_eyre::Result;
 
 #[derive(Debug, Default)]
 pub struct SearchConfig {
@@ -42,7 +44,7 @@ pub struct SearchResult {
     pub literation: Option<Literation>,
 }
 
-pub fn lookup(query: &SearchConfig) -> Result<SearchResult, TranslateError> {
+pub fn lookup(query: &SearchConfig) -> Result<SearchResult> {
     let res: SearchResult = match query.provider {
         SearchProvider::GoogleTranslate => {
             translators::google_translate::lookup_google_translate(query)?.into()
@@ -54,18 +56,20 @@ pub fn lookup(query: &SearchConfig) -> Result<SearchResult, TranslateError> {
 }
 
 pub fn parse_lang(lang: String) -> Result<Language, LanguageParseError> {
-    let res: Language = Language::from_639_1(&lang)
-        .ok_or(LanguageParseError("invalid language code".to_string()))?;
+    let res: Language = Language::from_639_1(&lang).ok_or(LanguageParseError(
+        format!("'{}' is not a valid language code", &lang).to_string(),
+    ))?;
 
     Ok(res)
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct LanguageParseError(String);
+
+impl Error for LanguageParseError {}
 
 impl std::fmt::Display for LanguageParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "failed to parse the language code: {}", self.0)
     }
-    // add code here
 }

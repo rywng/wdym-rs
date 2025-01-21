@@ -1,4 +1,5 @@
 use clap::Parser;
+use color_eyre::eyre::Result;
 
 use wdym::app::App;
 use wdym::search::parse_lang;
@@ -45,17 +46,18 @@ impl TryInto<SearchConfig> for CliArgs {
     // add code here
 }
 
-fn main() {
-    let args = CliArgs::parse();
+fn main() -> Result<()> {
+    color_eyre::install()?;
 
-    let search_config: SearchConfig = args.try_into().unwrap();
+    let search_config: SearchConfig = CliArgs::parse().try_into()?;
 
     let mut terminal = ratatui::init();
     let mut app = App::new(search_config);
-
-    app.run(&mut terminal);
+    let result = app.run(&mut terminal);
 
     ratatui::restore();
+
+    result
 }
 
 #[cfg(test)]

@@ -19,6 +19,7 @@ use crate::search;
 
 use super::TranslateError;
 
+use color_eyre::Result;
 use serde::Deserialize;
 
 #[allow(dead_code)]
@@ -255,9 +256,7 @@ fn pretty_format_section(
 
 /// Looks up the translation on google translate, using the endpoint by:
 /// <https://github.com/ssut/py-googletrans/issues/268#issuecomment-1146554742>
-pub fn lookup_google_translate(
-    search_options: &search::SearchConfig,
-) -> Result<SearchResult, TranslateError> {
+pub fn lookup_google_translate(search_options: &search::SearchConfig) -> Result<SearchResult> {
     let url = reqwest::Url::parse_with_params(
         "https://clients5.google.com/translate_a/single",
         &[
@@ -291,10 +290,9 @@ pub fn lookup_google_translate(
             ),
             ("q", &search_options.query),
         ],
-    )
-    .unwrap();
-    let response: reqwest::blocking::Response = reqwest::blocking::get(url).unwrap();
-    let body: HttpResponse = response.json().unwrap();
+    )?;
+    let response: reqwest::blocking::Response = reqwest::blocking::get(url)?;
+    let body: HttpResponse = response.json()?;
     let search_result: SearchResult = body.try_into()?;
     Ok(search_result)
 }
