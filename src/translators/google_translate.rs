@@ -132,10 +132,14 @@ impl From<SearchResult> for crate::search::SearchResult {
                     .collect()
             }),
             src_lang: Some(value.src_lang),
-            literation: Some(crate::search::Literation {
-                orig: value.src_translit,
-                translated: value.translit,
-            }),
+            literation: if value.src_translit.is_some() && value.translit.is_some() {
+                Some(crate::search::Literation {
+                    orig: value.src_translit,
+                    translated: value.translit,
+                })
+            } else {
+                None
+            },
             definitions,
         }
     }
