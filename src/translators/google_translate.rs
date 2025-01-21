@@ -92,10 +92,10 @@ impl From<SearchResult> for crate::search::SearchResult {
                         });
                     }
                 }
-                res.sort_unstable_by(|a, b| {
-                    a.confidence
+                res.sort_by(|a, b| {
+                    b.confidence
                         .unwrap_or(0.0)
-                        .total_cmp(&b.confidence.unwrap_or(0.0))
+                        .total_cmp(&a.confidence.unwrap_or(0.0))
                 });
                 Some(res)
             }
