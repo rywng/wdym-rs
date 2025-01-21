@@ -217,7 +217,7 @@ fn render_result(
     if let Some(literation) = &result.literation {
         make_title(&mut res, "Literations");
         if let Some(original) = &literation.orig {
-            res.push(vec!["Original: ".bold().dim(), original.clone().italic()].into());
+            res.push(vec!["Original  : ".bold().dim(), original.clone().italic()].into());
         }
         if let Some(translated) = &literation.translated {
             res.push(vec!["Translated: ".bold().dim(), translated.clone().into()].into());
