@@ -250,7 +250,7 @@ fn make_title<'a>(res: &mut Vec<Line<'a>>, title: &'a str) {
 }
 
 fn search(search_config: &SearchConfig) -> Result<SearchResult> {
-    Ok(search::lookup(search_config)?)
+    search::lookup(search_config)
 }
 
 fn handle_key(key: event::KeyEvent) -> Option<Message> {
