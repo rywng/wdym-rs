@@ -1,8 +1,9 @@
+use std::rc::Rc;
+
 use ratatui::backend::Backend;
-use ratatui::crossterm::event;
-use ratatui::style::Stylize;
 use ratatui::text::Line;
-use ratatui::widgets::{self, Block, Paragraph};
+use ratatui::widgets::{self, Block, Paragraph, Widget};
+use ratatui::{crossterm::event, style::Stylize};
 
 use crate::search::{self, SearchConfig, SearchResult};
 
@@ -28,6 +29,52 @@ enum Message {
     Searching(SearchConfig),
     ResultReceived(SearchResult),
     Quit,
+}
+
+impl Widget for &App {
+    fn render(self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer)
+    where
+        Self: Sized,
+    {
+        let title = Line::from("What Do You Mean?".bold());
+        let bottom_title = Line::from("Press <q> to quit");
+        let block = Block::bordered()
+            .border_type(widgets::BorderType::Rounded)
+            .title(title.centered())
+            .title_bottom(bottom_title.centered())
+            .padding(widgets::Padding::horizontal(1));
+
+        let inner_area = block.inner(area);
+
+        block.render(area, buf);
+
+        match self.running_state {
+            RunningState::Start => {
+                "Starting".italic().render(inner_area, buf);
+            }
+            RunningState::Searching => {
+                Line::from(vec![
+                    "Searching for: ".italic(),
+                    self.search_config
+                        .as_ref()
+                        .expect("Should have a search config")
+                        .query
+                        .to_string()
+                        .italic()
+                        .bold(),
+                ])
+                .render(inner_area, buf);
+            }
+            RunningState::Result => {
+                render_result(
+                    &self.results.as_ref().expect("Should have a result"),
+                    inner_area,
+                    buf,
+                );
+            }
+            _ => {}
+        };
+    }
 }
 
 impl App {
@@ -97,45 +144,23 @@ impl App {
     }
 
     fn view(&self, frame: &mut ratatui::Frame) {
-        let title = Line::from("What Do You Mean?".bold());
-        let bottom_title = Line::from("Press <q> to quit");
-        let block = Block::bordered().title(title.centered()).title_bottom(bottom_title.centered());
-
-        let content: Paragraph = match self.running_state {
-            RunningState::Searching => Paragraph::new(Line::from(vec![
-                "Searching with: ".italic().into(),
-                self.search_config
-                    .as_ref()
-                    .expect("Should have a config")
-                    .provider
-                    .to_string()
-                    .italic()
-                    .bold()
-                    .into(),
-            ])),
-            RunningState::Result => {
-                format_result(&self.results.as_ref().expect("Should have a result"))
-            }
-            RunningState::Finished => Paragraph::new(""),
-            RunningState::Start => Paragraph::new("Started".italic()),
-        };
-
-        frame.render_widget(
-            Paragraph::from(content)
-                .left_aligned()
-                .block(block)
-                .wrap(widgets::Wrap { trim: false }),
-            frame.area(),
-        );
+        frame.render_widget(self, frame.area());
     }
 }
 
-fn format_result(result: &SearchResult) -> Paragraph {
-    let provider: Line = result.provider.to_string().bold().into();
-    let mut res: Vec<Line> = vec![provider];
+fn render_result(
+    result: &SearchResult,
+    area: ratatui::prelude::Rect,
+    buf: &mut ratatui::prelude::Buffer,
+) {
+    let provider = result.provider.to_string().bold();
+    let block: Block = Block::bordered().title(provider);
+    let mut res: Vec<Line> = Vec::new();
 
     if let Some(translations) = &result.translation {
         let mut lines: Vec<Line> = Vec::new();
+        lines.push("Translations:".underlined().into());
+        lines.push("".into());
         for translation in translations {
             lines.push(Line::from(
                 translation.orig.clone().unwrap_or("".to_string()).italic(),
@@ -151,7 +176,7 @@ fn format_result(result: &SearchResult) -> Paragraph {
         res.append(&mut lines);
     }
 
-    Paragraph::new(res)
+    Paragraph::new(res).block(block).render(area, buf);
 }
 
 fn search(search_config: &SearchConfig) -> Option<SearchResult> {
