@@ -38,7 +38,7 @@ pub struct SearchResult {
     pub(crate) translations: Option<Vec<Translation>>,
     pub(crate) definitions: Option<Vec<Definition>>,
     pub(crate) src_lang: Option<String>,
-    pub(crate) literation: Literation,
+    pub(crate) literation: Option<Literation>,
 }
 
 pub fn lookup(query: &SearchConfig) -> Result<SearchResult, TranslateError> {

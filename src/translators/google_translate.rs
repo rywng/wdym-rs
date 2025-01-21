@@ -105,10 +105,10 @@ impl From<SearchResult> for crate::search::SearchResult {
                     .collect()
             }),
             src_lang: Some(value.src_lang),
-            literation: crate::search::Literation {
+            literation: Some(crate::search::Literation {
                 orig: value.src_translit,
                 translated: value.translit,
-            },
+            }),
             definitions,
         }
     }

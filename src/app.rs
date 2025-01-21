@@ -160,30 +160,29 @@ fn render_result(
     let mut res: Vec<Line> = Vec::new();
 
     if let Some(translations) = &result.translations {
-        let mut lines: Vec<Line> = Vec::new();
-        lines.push("".into());
-        lines.push("Translations:".underlined().into());
-        lines.push("".into());
+        make_title(&mut res, "Translations");
         for translation in translations {
-            lines.push(Line::from(
+            res.push(Line::from(
                 translation.orig.clone().unwrap_or("".to_string()).italic(),
             ));
-            lines.push(Line::from(
-                translation
-                    .translated
-                    .clone()
-                    .unwrap_or("".to_string())
-                    .bold(),
+            res.push(Line::from(
+                translation.translated.clone().unwrap_or("".to_string()),
             ));
         }
-        res.append(&mut lines);
     }
 
     if let Some(definitions) = &result.definitions {
-        todo!();
+        make_title(&mut res, "Definitions");
+        for definition in definitions {
+        }
     }
 
     Paragraph::new(res).block(block).render(area, buf);
+}
+
+fn make_title<'a>(res: &mut Vec<Line<'a>>, title: &'a str) {
+    res.push("".into());
+    res.push(title.underlined().into());
 }
 
 fn search(search_config: &SearchConfig) -> Option<SearchResult> {
