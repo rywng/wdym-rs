@@ -184,7 +184,7 @@ fn render_result(
         for definition in definitions {
             let mut line: Vec<Span> = vec![
                 definition.meaning.clone().underlined().cyan(),
-                format!(" ({})", definition.pos).green(),
+                format!(" ({})", definition.pos.to_lowercase()).green(),
             ];
 
             if let Some(reverse_translation) = &definition.reverse_translation {
@@ -229,10 +229,10 @@ fn render_result(
     if let Some(literation) = &result.literation {
         make_title(&mut res, "Literations");
         if let Some(original) = &literation.orig {
-            res.push(vec!["Original  : ".bold().dim(), original.clone().italic()].into());
+            res.push(vec!["Original  : ".dim(), original.clone().italic()].into());
         }
         if let Some(translated) = &literation.translated {
-            res.push(vec!["Translated: ".bold().dim(), translated.clone().into()].into());
+            res.push(vec!["Translated: ".dim(), translated.clone().into()].into());
         }
     }
 
