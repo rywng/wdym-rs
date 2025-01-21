@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use ratatui::backend::Backend;
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{self, Block, Paragraph, Widget};
@@ -7,7 +9,7 @@ use crate::search::{self, SearchConfig, SearchResult};
 
 #[derive(Debug)]
 pub struct App {
-    search_config: Option<SearchConfig>,
+    search_config: Rc<SearchConfig>,
     results: Option<search::SearchResult>,
     running_state: RunningState,
 }
@@ -23,8 +25,8 @@ enum RunningState {
 
 #[derive(Debug)]
 enum Message {
-    QueryReceived(SearchConfig),
-    Searching(SearchConfig),
+    QueryReceived(Rc<SearchConfig>),
+    Searching(Rc<SearchConfig>),
     ResultReceived(SearchResult),
     Quit,
 }
@@ -55,7 +57,6 @@ impl Widget for &App {
                     "Searching for: ".italic(),
                     self.search_config
                         .as_ref()
-                        .expect("Should have a search config")
                         .query
                         .to_string()
                         .italic()
@@ -66,10 +67,7 @@ impl Widget for &App {
             RunningState::Result => {
                 render_result(
                     &self.results.as_ref().expect("Should have a result"),
-                    &self
-                        .search_config
-                        .as_ref()
-                        .expect("Should have a search config"),
+                    &self.search_config,
                     inner_area,
                     buf,
                 );
@@ -84,14 +82,14 @@ impl App {
         App {
             results: None,
             running_state: Default::default(),
-            search_config: Some(search_config),
+            search_config: Rc::new(search_config),
         }
     }
 
     pub fn run(&mut self, terminal: &mut ratatui::Terminal<impl Backend>) {
         // Search the user-given query first
         let mut cur_message: Option<Message> =
-            Some(Message::QueryReceived(self.search_config.clone().unwrap()));
+            Some(Message::QueryReceived(Rc::clone(&self.search_config)));
 
         while self.running_state != RunningState::Finished {
             terminal.draw(|f| self.view(f)).unwrap();
