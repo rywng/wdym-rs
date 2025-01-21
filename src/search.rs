@@ -24,7 +24,7 @@ pub struct Definition {
     pub(crate) pos: String, // Part of speech, noun verb etc.
     pub(crate) reverse_translation: Option<Vec<String>>,
     pub(crate) confidence: Option<f32>,
-    pub(crate) examples: Option<Vec<String>>
+    pub(crate) examples: Option<Vec<String>>,
 }
 
 #[derive(Debug)]
@@ -35,11 +35,11 @@ pub struct Literation {
 
 #[derive(Debug)]
 pub struct SearchResult {
-    pub(crate) provider: SearchProvider,
-    pub(crate) translations: Option<Vec<Translation>>,
-    pub(crate) definitions: Option<Vec<Definition>>,
-    pub(crate) src_lang: Option<String>,
-    pub(crate) literation: Option<Literation>,
+    pub provider: SearchProvider,
+    pub translations: Option<Vec<Translation>>,
+    pub definitions: Option<Vec<Definition>>,
+    pub src_lang: Option<String>,
+    pub literation: Option<Literation>,
 }
 
 pub fn lookup(query: &SearchConfig) -> Result<SearchResult, TranslateError> {

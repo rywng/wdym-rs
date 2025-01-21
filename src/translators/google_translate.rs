@@ -1,3 +1,20 @@
+//! The google translator module
+//!
+//! # Examples
+//! ```rust
+//! use wdym::translators::google_translate::lookup_google_translate;
+//! use wdym::search;
+//! use wdym::translators::SearchProvider;
+//!
+//! let search_options  = search::SearchConfig {
+//!            query: "Book".to_string(),
+//!            source_language: Some(isolang::Language::Eng),
+//!            target_language: Some(isolang::Language::Jpn),
+//!            provider: SearchProvider::GoogleTranslate,
+//! };
+//! let result: search::SearchResult = lookup_google_translate(&search_options).unwrap().into();
+//! assert_eq!(&result.src_lang.unwrap(), "en");
+//! ```
 use crate::search;
 
 use super::TranslateError;
@@ -58,6 +75,9 @@ impl From<HttpResponseDict> for SearchResultDict {
     }
 }
 
+/// The search result of google translate
+///
+/// Can be converted to `search::SearchResult`, using `from` or `into`
 pub struct SearchResult {
     dicts: Option<Vec<SearchResultDict>>,
     sentence_translation: Option<Vec<(String, String)>>,
@@ -235,8 +255,6 @@ fn pretty_format_section(
 
 /// Looks up the translation on google translate, using the endpoint by:
 /// <https://github.com/ssut/py-googletrans/issues/268#issuecomment-1146554742>
-/// This will only success for a small number of words
-/// TODO: add support for multiple definitions
 pub fn lookup_google_translate(
     search_options: &search::SearchConfig,
 ) -> Result<SearchResult, TranslateError> {
