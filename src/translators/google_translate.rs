@@ -326,11 +326,6 @@ pub(crate) mod test {
     }
 
     /// Test the transliteration and translation
-    ///
-    /// # Examples
-    /// ```rust
-    /// write me later
-    /// ```
     #[test]
     fn translit_translate() {
         let search_options = search::SearchConfig {
