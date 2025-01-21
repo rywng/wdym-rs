@@ -1,7 +1,5 @@
-use std::rc::Rc;
-
 use ratatui::backend::Backend;
-use ratatui::text::Line;
+use ratatui::text::{Line, Span};
 use ratatui::widgets::{self, Block, Paragraph, Widget};
 use ratatui::{crossterm::event, style::Stylize};
 
@@ -159,6 +157,25 @@ fn render_result(
         .padding(widgets::Padding::horizontal(1));
     let mut res: Vec<Line> = Vec::new();
 
+    if let Some(definitions) = &result.definitions {
+        make_title(&mut res, "Definitions");
+        for definition in definitions {
+            let mut line: Vec<Span> = vec![
+                definition.meaning.clone().bold(),
+                format!(" ({})", definition.pos).italic(),
+            ];
+            if let Some(reverse_translation) = &definition.reverse_translation {
+                let mut translations: Vec<Span> = reverse_translation
+                    .iter()
+                    .map(|s| format!("{} ", s).italic())
+                    .collect();
+                line.push(": ".into());
+                line.append(&mut translations);
+            }
+            res.push(Line::from(line));
+        }
+    }
+
     if let Some(translations) = &result.translations {
         make_title(&mut res, "Translations");
         for translation in translations {
@@ -171,13 +188,20 @@ fn render_result(
         }
     }
 
-    if let Some(definitions) = &result.definitions {
-        make_title(&mut res, "Definitions");
-        for definition in definitions {
+    if let Some(literation) = &result.literation {
+        make_title(&mut res, "Literation");
+        if let Some(original) = &literation.orig {
+            res.push(vec!["Original: ".bold(), original.clone().italic().into()].into());
+        }
+        if let Some(translated) = &literation.translated {
+            res.push(vec!["Translated: ".bold(), translated.clone().into()].into());
         }
     }
 
-    Paragraph::new(res).block(block).render(area, buf);
+    Paragraph::new(res)
+        .wrap(widgets::Wrap { trim: true })
+        .block(block)
+        .render(area, buf);
 }
 
 fn make_title<'a>(res: &mut Vec<Line<'a>>, title: &'a str) {
