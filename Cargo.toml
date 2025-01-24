@@ -1,7 +1,7 @@
 [package]
 name = "wdym"
 description = "What Do You Mean: Look up definitions and translations online. Has a library and TUI interface"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 readme = "README.md"
