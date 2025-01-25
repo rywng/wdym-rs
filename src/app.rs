@@ -161,12 +161,12 @@ fn render_result(
         config
             .source_language
             .unwrap_or_else(|| {
-                isolang::Language::from_639_1(result.src_lang.as_ref().unwrap_or(&"".to_string()))
+                search::parse_lang(result.src_lang.as_ref().unwrap_or(&"".to_string()))
                     .unwrap_or(isolang::Language::Und)
             })
             .to_string()
             .italic(),
-        " -> ".into(),
+        " -> ".dim(),
         config
             .target_language
             .unwrap_or(isolang::Language::Und)

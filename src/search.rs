@@ -55,12 +55,26 @@ pub fn lookup(query: &SearchConfig) -> Result<SearchResult> {
     Ok(res)
 }
 
-pub fn parse_lang(lang: String) -> Result<Language, LanguageParseError> {
-    let res: Language = Language::from_639_1(&lang).ok_or(LanguageParseError(
-        format!("'{}' is not a valid language code", &lang).to_string(),
-    ))?;
+/// Parses a language string and return a Language Enum
+///
+/// Reference: [Wikipedia page](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes)
+///
+/// # Examples
+/// ```rust
+/// use wdym::search::parse_lang;
+/// use isolang::Language;
+/// assert_eq!(parse_lang("en").unwrap(), Language::Eng);
+/// ```
+pub fn parse_lang(lang: &str) -> Result<Language> {
+    let lang = lang.to_lowercase();
+    let res = lang
+        .parse::<Language>() // Parses ISO 639-1, 639-3 English names and autonyms
+        .or_else(|_| {
+            Language::from_locale(&lang) // Parses Unix style locale: `zh_CN.utf8`
+                .ok_or(LanguageParseError(lang.to_string()))
+        });
 
-    Ok(res)
+    Ok(res?)
 }
 
 #[derive(Debug)]
@@ -71,5 +85,41 @@ impl Error for LanguageParseError {}
 impl std::fmt::Display for LanguageParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "failed to parse the language code: {}", self.0)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn test_parsing_lang() {
+        // Unix-style locale
+        let res = parse_lang("zh_CN.utf8").unwrap();
+        assert_eq!(res, Language::Zho);
+
+        // Non-standard locale
+        let res = parse_lang("zh_TW").unwrap(); // The implementation of isolang currently only
+                                                // reads the `zh` part, ignoring the country code.
+        assert_eq!(res, Language::Zho);
+
+        // ISO 639-1
+        let res = parse_lang("ja").unwrap();
+        assert_eq!(res, Language::Jpn);
+
+        // ISO 639-3
+        let res = parse_lang("jpn").unwrap();
+        assert_eq!(res, Language::Jpn);
+
+        // Lowercase English name
+        let res = parse_lang("german").unwrap();
+        assert_eq!(res, Language::Deu);
+
+        // Mixed case English name
+        let res = parse_lang("HinDi").unwrap();
+        assert_eq!(res, Language::Hin);
+
+        // Autonym
+        let res = parse_lang("עברית").unwrap();
+        assert_eq!(res, Language::Heb);
     }
 }

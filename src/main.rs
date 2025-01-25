@@ -4,7 +4,7 @@ use color_eyre::eyre::Result;
 use wdym::app::App;
 use wdym::search::parse_lang;
 use wdym::search::SearchConfig;
-use wdym::{search::LanguageParseError, translators::SearchProvider};
+use wdym::translators::SearchProvider;
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -25,17 +25,17 @@ struct CliArgs {
 }
 
 impl TryInto<SearchConfig> for CliArgs {
-    type Error = LanguageParseError;
+    type Error = color_eyre::eyre::ErrReport;
 
     fn try_into(self) -> Result<SearchConfig, Self::Error> {
         let res: SearchConfig = SearchConfig {
             query: self.input,
             source_language: match self.source_lang {
-                Some(lang) => Some(parse_lang(lang)?),
+                Some(lang) => Some(parse_lang(&lang)?),
                 None => None,
             },
             target_language: match self.dest_lang {
-                Some(lang) => Some(parse_lang(lang)?),
+                Some(lang) => Some(parse_lang(&lang)?),
                 None => None,
             },
             provider: self.provider,
