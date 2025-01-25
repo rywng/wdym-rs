@@ -109,16 +109,16 @@ impl App {
     fn handle_event(&self) -> Result<Option<Message>> {
         let event = event::read()?;
         match event {
-            event::Event::FocusGained => todo!(),
-            event::Event::FocusLost => todo!(),
             event::Event::Key(key_event) => {
                 if key_event.kind == event::KeyEventKind::Press {
                     return Ok(handle_key(key_event));
                 }
             }
-            event::Event::Mouse(_mouse_event) => todo!(),
-            event::Event::Paste(_) => todo!(),
-            event::Event::Resize(_, _) => todo!(),
+            event::Event::Resize(_, _) => {} // Return None, and it will update itself next loop
+            event::Event::FocusGained => {}
+            event::Event::FocusLost => {}
+            event::Event::Mouse(_mouse_event) => {}
+            event::Event::Paste(_) => {}
         }
 
         Ok(None)
