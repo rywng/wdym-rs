@@ -35,7 +35,6 @@ struct HttpResponse {
 
 /// A sentence may have some of the following.
 /// A trans and orig are always appearing together
-/// TODO: add sentence translation
 #[derive(Deserialize, Debug)]
 struct HttpResponseSentence {
     src_translit: Option<String>,
